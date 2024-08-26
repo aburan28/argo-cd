@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 
+	gh "github.com/argoproj/argo-cd/v2/applicationset/services/internal/github"
 	"github.com/google/go-github/v63/github"
-	"golang.org/x/oauth2"
 )
 
 type GithubProvider struct {
@@ -19,26 +18,12 @@ type GithubProvider struct {
 var _ SCMProviderService = &GithubProvider{}
 
 func NewGithubProvider(ctx context.Context, organization string, token string, url string, allBranches bool) (*GithubProvider, error) {
-	var ts oauth2.TokenSource
-	// Undocumented environment variable to set a default token, to be used in testing to dodge anonymous rate limits.
-	if token == "" {
-		token = os.Getenv("GITHUB_TOKEN")
-	}
-	if token != "" {
-		ts = oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: token},
-		)
-	}
-	httpClient := oauth2.NewClient(ctx, ts)
-	var client *github.Client
-	if url == "" {
-		client = github.NewClient(httpClient)
-	} else {
-		var err error
-		client, err = github.NewClient(httpClient).WithEnterpriseURLs(url, url)
-		if err != nil {
-			return nil, err
-		}
+	client, err := gh.Client(ctx, &gh.ClientOptions{
+		URL:   url,
+		Token: token,
+	})
+	if err != nil {
+		return nil, err
 	}
 	return &GithubProvider{client: client, organization: organization, allBranches: allBranches}, nil
 }

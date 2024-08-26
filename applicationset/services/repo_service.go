@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gregjones/httpcache"
+
+	gh "github.com/argoproj/argo-cd/v2/applicationset/services/internal/github"
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/v2/reposerver/apiclient"
 	"github.com/argoproj/argo-cd/v2/util/git"
@@ -88,4 +91,8 @@ func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revi
 		return nil, fmt.Errorf("error retrieving Git Directories: %w", err)
 	}
 	return dirResponse.GetPaths(), nil
+}
+
+func ContextWithGithubCache(ctx context.Context, cache httpcache.Cache) context.Context {
+	return gh.ContextWithGithubCache(ctx, cache)
 }

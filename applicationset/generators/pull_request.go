@@ -209,6 +209,9 @@ func (g *PullRequestGenerator) selectServiceProvider(ctx context.Context, genera
 }
 
 func (g *PullRequestGenerator) github(ctx context.Context, cfg *argoprojiov1alpha1.PullRequestGeneratorGithub, applicationSetInfo *argoprojiov1alpha1.ApplicationSet) (pullrequest.PullRequestService, error) {
+	if g.auth.GitHubClientCache != nil {
+		ctx = services.ContextWithGithubCache(ctx, g.auth.GitHubClientCache)
+	}
 	// use an app if it was configured
 	if cfg.AppSecretName != "" {
 		auth, err := g.GitHubApps.GetAuthSecret(ctx, cfg.AppSecretName)

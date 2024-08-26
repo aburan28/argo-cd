@@ -3,10 +3,10 @@ package pull_request
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/google/go-github/v63/github"
-	"golang.org/x/oauth2"
+
+	gh "github.com/argoproj/argo-cd/v2/applicationset/services/internal/github"
 )
 
 type GithubService struct {
@@ -18,28 +18,15 @@ type GithubService struct {
 
 var _ PullRequestService = (*GithubService)(nil)
 
-func NewGithubService(ctx context.Context, token, url, owner, repo string, labels []string) (PullRequestService, error) {
-	var ts oauth2.TokenSource
-	// Undocumented environment variable to set a default token, to be used in testing to dodge anonymous rate limits.
-	if token == "" {
-		token = os.Getenv("GITHUB_TOKEN")
+func NewGithubService(ctx context.Context, token, url, owner, repo string, labels []string, cacheRequests bool) (PullRequestService, error) {
+	client, err := gh.Client(ctx, &gh.ClientOptions{
+		URL:   url,
+		Token: token,
+	})
+	if err != nil {
+		return nil, err
 	}
-	if token != "" {
-		ts = oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: token},
-		)
-	}
-	httpClient := oauth2.NewClient(ctx, ts)
-	var client *github.Client
-	if url == "" {
-		client = github.NewClient(httpClient)
-	} else {
-		var err error
-		client, err = github.NewClient(httpClient).WithEnterpriseURLs(url, url)
-		if err != nil {
-			return nil, err
-		}
-	}
+
 	return &GithubService{
 		client: client,
 		owner:  owner,
