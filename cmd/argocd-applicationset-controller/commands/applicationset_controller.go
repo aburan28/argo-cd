@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/argoproj/pkg/stats"
+	"github.com/redis/go-redis/v9"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 
@@ -62,6 +63,7 @@ func NewCommand() *cobra.Command {
 		dryRun                       bool
 		enableProgressiveSyncs       bool
 		enableNewGitFileGlobbing     bool
+		redisClient                  *redis.Client
 		repoServerPlaintext          bool
 		repoServerStrictTLS          bool
 		repoServerTimeoutSeconds     int
